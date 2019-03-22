@@ -4,10 +4,10 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>libsodium</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+		<link rel="stylesheet" href="css/theme/solarized.css">
 
 		<!-- Theme used for syntax highlighting of code -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
@@ -24,8 +24,463 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<section data-markdown>
+          <textarea data-template>
+            ## Please pass the salt...
+            ### Why you should care about libsodium
+
+            <img src="img/saltshaker.jpg" alt="" style="width: 25%;">
+
+            By: Garrett Rappaport
+
+          </textarea>
+        </section>
+        <section data-markdown>
+          <textarea data-template>
+            ## whoami
+
+            * Software Engineer @ ShootProof
+            * Avid gamer, Musician, Geek Orthodox
+            * On the internet: [@syntacticNaCl](https://keybase.io/syntacticnacl)
+          </textarea>
+        </section>
+        <section data-markdown>
+          <textarea data-template>
+            ## Disclaimer
+
+            I am not:
+            * A cryptographer by trade
+            * An expert in cryptography
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+            ## Let's talk about salt
+
+            <img src="img/saltshaker2.jpg" alt="" style="width: 25%;">
+            Note:
+		        * Not that kind
+          </textarea>
+        </section>
+
+        <section>
+          <section data-markdown>
+            <textarea data-template>
+              ## NaCl
+
+              * NaCl - Pronounced "salt"
+              * Networking and Cryptography library
+            </textarea>
+          </section>
+
+          <section data-markdown>
+            <textarea data-template>
+                ## NaCl: Goal
+
+                > ... to provide all of the core operations needed to build higher-level cryptographic tools
+            </textarea>
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## What is libsodium?
+
+              Sodium is a modern, easy-to-use software library for encryption, decryption, signatures, password hashing, and more.
+
+              Note:
+              * It is a portable, cross-compilable, installable, packageable fork of NaCl, with a compatible API, and an extended API to improve usability even further.
+              * Fork of NaCl with a compatible API
+              * Audited and verified
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+              ## libsodium audit
+
+              >... We are pleased to report that our review did not uncover any critical flaws or vulnerabilities in the core library. Overall we believe that libsodium is a carefully-implemented, secure cryptographic library.”
+
+              Note:
+              libsodium has been audited by request of privateinternetaccess.com VPN service
+              audited by Dr. Matthew Green and team at cryptoengineers.com
+            </textarea>
+          </section>
+        </section>
+
+        <section data-markdown>
+          <textarea data-template>
+            ## I Care Why?
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+            ## !Password encryption
+
+            Say it with me...
+
+            > Passwords should NOT be encrypted!
+
+            Note:
+            * This is a bit of a misnomer... A lot of hashing algorithms use encryption in them
+            * The important part is that the stored value should be one-way, infeasible to invert
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+            ## Password hashing
+
+            You should never ever, ever, ever need to decrypt a password
+
+            Note:
+            * Passwords should be hashed
+            * The point of password hashing algorithms is to make it too computationally expensive for an attacker to crack a hash,
+            while making it not too expensive for hash creation
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+            ## Lets take a brief trip
+
+            Down password hashing memory lane...
+
+            Note:
+            * I am only going to discuss a couple of hashing algorithms that are in the scope of this presentation
+            ** MD5
+            ** bcrypt
+            ** Argon2
+          </textarea>
+        </section>
+
+        <section>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## MD5 hashing function
+
+            * Incredibly Vulnerable to hash collisions
+            * GPU's render (hehe) MD5 unbelievably broken
+
+            Note:
+            * Originally designed as a cryptographic hash function
+            * Incredibly vulnerable due to hash collisions
+            * Especially vulnerable to GPU cracking due to the nature of the algorithm
+            ** Can easily optimize a GPU to crack MD5 efficiently
+            * Best used for checksums to verify data integrity, but only against uintentional corruption. NOT intentional tampering
+            </textarea>
+          </section>
+
+          <section data-markdown>
+            <textarea data-template>
+            ## MD5 passwords
+
+              <pre>
+                <code data-trim data-noescape>
+                  // NOOOOOOO!!!
+                  $hash = md5($password); 
+	              </code>
+              </pre>
+            </textarea>
+          </section>
+
+          <section data-markdown>
+            <textarea data-template>
+            ## MD5 passwords w/ static salt
+
+              <pre>
+                <code data-trim data-noescape>
+                  // STILL NOOOOOOO!!!
+                  $hash = md5($password . $salt);
+	              </code>
+              </pre>
+            </textarea>
+          </section>
+
+          <section data-markdown>
+            <textarea data-template>
+            ## MD5 passwords w/ unique salt?
+
+              <pre>
+                <code data-trim data-noescape>
+                  // OOOH fancy... STILL NOOOOOOO!!!
+                  $hash = md5($password . $salt . strtolower($email));
+	              </code>
+              </pre>
+            </textarea>
+          </section>
+
+          <section data-markdown>
+            <textarea data-template>
+            ## MD5 hashing passwords
+
+            <img src="img/stop.gif" alt="" style="width: 50%;">
+
+            </textarea>
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## bcrypt hashing function
+
+            * Resistant to rainbow table attacks due to use of salt
+            * Configurable
+
+            Note:
+            * Allows for increasing cost
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## bcrypt hash breakdown
+              <pre>
+                <code data-trim data-noescape>
+                  <mark>$2y$10</mark>$5ueXbCtUXb8mQFGoCnzvMObnyOwauldtMO4UTsDg6P6n6Xk2QghEu
+                </code>
+              </pre>
+
+              * $2y$ - Blowfish-based crypt format
+              * 10$ - cost
+              * 5ueXbCtUXb8mQFGoCnzvMO - encoded salt
+              * bnyOwauldtMO4UTsDg6P6n6Xk2QghEu - encoded hash
+
+              Note:
+              * Cryptographers got smarter and started storing configuration values in the hash itself
+              ** No longer have to pull from different storage mediums to access information about the hash
+              ** Makes hash easier to verify in one fail swoop since what is need is in the hash itself
+              * Allows for increasing cost - which represents a key expansion iteration count
+              * All pieces add up to an encoded 60 character string
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## bcrypt in PHP
+
+              * PHP < 5.3.7 you had to use the `crypt()` function
+              * PHP >= 5.3.7 and < 5.5-DEV you had to use a compatibility library `ircmaxell/password_compat`
+              * PHP >= 5.5-DEV introduced `password_hash()`
+
+              <img src="img/lotr-ring.jpg" alt="" style="width: 25%;">
+
+              Note:
+              * The one PHP password hashing function to rule them all
+            </textarea>
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## Argon2
+
+            * Winner of Password Hashing Competition in July 2015
+            * Variable-length hash function
+
+            Note:
+            * Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory array in a password dependent order, which reduces the possibility of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
+            * Argon2i is optimized to resist side-channel attacks. It accesses the memory array in a password independent order.
+            * Argon2id is a hybrid version. It follows the Argon2i approach for the first pass over memory and the Argon2d approach for subsequent passes. The Internet draft[4] recommends using Argon2id except when there are reasons to prefer one of the other two modes.
+
+            All three modes allow specification by three parameters that control:
+            * execution time
+            * memory required
+            * threads - or degree of parallelism
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## argon2i hash breakdown
+              <pre>
+                <code data-trim data-noescape>
+                  $argon2i$v=19$m=1024,t=2,p=2$bDA0aG5DOXRXVm01RFMxeA$ZIiAX+esugM1UeRwZEPEPax9OzLIXFSM1qNQjgexU3o
+                </code>
+              </pre>
+
+              * argon2i - variant
+              * v=19 - version
+              * m=1024 - memory size in kibibytes
+              * t=2 - iterations
+              * p=2 - parallelism
+              * $bD... - base-64 encoded salt
+              * $ZI... - base-64 encoded hash
+
+              Note:
+              * Cryptographers got smarter and started storing configuration values in the hash itself
+              ** No longer have to pull from different storage mediums to access information about the hash
+              ** Makes hash easier to verify in one fail swoop since what is need is in the hash itself
+              * Allows for increasing cost - which represents a key expansion iteration count
+              * All pieces add up to an encoded 60 character string
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## argon2 in PHP
+
+              * Argon2I - available as of PHP 7.2
+              * Argon2ID - available as of PHP 7.3
+              * PHP must be compiled with Argon2 support
+
+              <pre>
+                <code data-trim data-noescape>
+                  --with-password-argon2=/usr
+                </code>
+              </pre>
+
+              Note:
+              * PHP must be compiled with Argon2 support
+              * Again Argon2ID is recommended
+            </textarea>
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## PHP core team figured it out
+
+            * [password_get_info](https://php.net/manual/en/function.password-get-info.php) — Returns information about the given hash
+            * [password_hash](https://php.net/manual/en/function.password-hash.php) — Creates a password hash
+            * [password_needs_rehash](https://php.net/manual/en/function.password-needs-rehash.php) — Checks if the given hash matches the given options
+            * [password_verify](https://php.net/manual/en/function.password-verify.php) — Verifies that a password matches a hash
+
+            Note:
+            * No need for special password hashing implementations
+            * One function to rule them all
+            * These are all you need:
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## password_get_info
+
+              <pre>
+                <code data-trim data-noescape>
+                    print_r( password_get_info( $password_hash ) );
+
+                    /* returns:
+                    Array (
+                        [algo] => 1
+                        [algoName] => bcrypt  // Your server's default.
+                        [options] => Array ( [cost] => 11 )
+                    )
+                    */
+	              </code>
+              </pre>
+
+              Note:
+              * Returns information about the given hash
+              * When passed in a valid hash created by an algorithm supported by password_hash(),
+                this function will return an array of information about that hash. 
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## password_hash
+
+              <pre>
+                <code data-trim data-noescape>
+                    // PASSWORD_DEFAULT currently is set to use the bcrypt algorithm
+                    echo password_hash("supersecretpassword", PASSWORD_DEFAULT);
+                    // $2y$10$5ueXbCtUXb8mQFGoCnzvMObnyOwauldtMO4UTsDg6P6n6Xk2QghEu
+                </code>
+              </pre>
+              Note:
+              * Creates a password hash
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## password_hash algorithms
+
+              * PASSWORD_DEFAULT - Uses the bcrypt algorithm (default as of PHP 5.5.0)
+              * PASSWORD_BCRYPT
+              * PASSWORD_ARGON2I
+              * PASSWORD_ARGON2ID
+
+              Note:
+              * Creates a password hash
+              * PASSWORD_DEFAULT - Use the bcrypt algorithm (default as of PHP 5.5.0). Note that this constant is designed to change over time as new and stronger algorithms are added to PHP. For that reason, the length of the result from using this identifier can change over time. Therefore, it is recommended to store the result in a database column that can expand beyond 60 characters (255 characters would be a good choice).
+              * PASSWORD_BCRYPT - Use the CRYPT_BLOWFISH algorithm to create the hash. This will produce a standard crypt() compatible hash using the "$2y$" identifier. The result will always be a 60 character string, or FALSE on failure.
+              * PASSWORD_ARGON2I - Use the Argon2i hashing algorithm to create the hash. This algorithm is only available if PHP has been compiled with Argon2 support.
+              * PASSWORD_ARGON2ID - Use the Argon2id hashing algorithm to create the hash. This algorithm is only available if PHP has been compiled with Argon2 support.
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## password_needs_rehash
+
+            <pre>
+              <code data-trim data-noescape>
+                password_needs_rehash ( string $hash , int $algo [, array $options ] ) : bool
+              </code>
+            </pre>
+
+            Note:
+            * Checks if the given hash matches the given options
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## password_verify
+
+            <pre>
+              <code data-trim data-noescape>
+                  password_verify ( string $password , string $hash ) : bool
+              </code>
+            </pre>
+
+            Note:
+            * Verifies that the given hash matches the given password
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## password_verify argon2
+
+              * Rehashing a password with Argon2 will be different than any stored hash
+              * Must use `password_verify()`
+              * When in doubt use `password_verify()` instead of hash comparisons
+
+              Note:
+              * No more hash(password) === hashedPassword
+            </textarea>
+          </section>
+        </section>
+
+        <section data-markdown>
+          <textarea data-template>
+          ## Resources
+          * [libsodium Security Assessment](https://www.privateinternetaccess.com/blog/2017/08/libsodium-v1-0-12-and-v1-0-13-security-assessment/)
+          * [libsodium docs](https://download.libsodium.org/doc/)
+          * [NaCl docs](https://nacl.cr.yp.to/)
+          * [MD5](https://en.wikipedia.org/wiki/MD5)
+          * [bcrypt](https://en.wikipedia.org/wiki/Bcrypt)
+          </textarea>
+        </section>
+
+        <section data-markdown>
+          <textarea data-template>
+          ## Thanks
+          * *Twitter*: @syntacticNaCl
+          * *Github*: syntacticNaCl
+          * *Email*: garrettrappaport@protonmail.com
+          * *Website*: syntacticnacl.com
+          </textarea>
+        </section>
 			</div>
 		</div>
 
