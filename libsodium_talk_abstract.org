@@ -1,0 +1,60 @@
+* Needs more salt... Why you should care about libsodium
+** Abstract
+  Cryptography has never been an approachable subject, especially when it comes to computing. Libsodium has set out to change that.
+  We hear about systems being compromised on a daily basis with millions of passwords out on the web free to use
+  to access other site's accounts and systems. This is unacceptable! What happens when these systems are compromised?
+  Can crackers access your "encrypted" data? Can they access your "hashed" passwords? This talk will discuss proper
+  hashing mechanisms for passwords, libsodium, and encryption and how it relates to our PHP applications and systems.
+** Introduction
+*** About me
+*** Outline
+**** Password hashing algorithms
+**** Password best practices
+**** libsodium
+**** Encryption with libsodium
+**** Encryption best practices
+**** Demo Argon2i
+**** Demo Encrypt/Decrypt with libsodium
+** password hashing
+*** MD5
+**** What is MD5?
+**** Why you shouldn't use it
+**** Examples
+*** bcrypt
+**** What is bcrypt
+**** How to use it in PHP
+**** Examples
+*** Argon2
+**** What is Argon2
+**** How to use it in PHP
+**** Examples
+** NaCl
+*** Background
+*** Goals
+** libsodium
+*** Background
+*** Goals
+** PHP password functions
+*** password\under{}hash()
+**** Usage
+*** password\under{}get\under{}info()
+**** Usage
+*** password\under{}needs\under{}rehash()
+**** Usage
+*** password\under{}verify()
+**** Usage
+**** Argon2 caveats
+** libsodium in PHP
+*** wiping sensitive data from memory
+**** sodium\under{}memzero()
+*** generating secure random values
+**** random\under{}bytes()
+*** encryption
+**** sodium\under{}crypto\under{}secretbox()
+*** decryption
+**** sodium\under{}crypto\under{}secretbox\under{}open()
+*** best practices and useful defaults
+**** authenticated vs unauthenticated encryption
+**** what is a MAC
+**** always encrypt then MAC!
+** Demonstration

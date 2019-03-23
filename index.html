@@ -26,8 +26,8 @@
 			<div class="slides">
 				<section data-markdown>
           <textarea data-template>
-            ## Please pass the salt...
-            ### Why you should care about libsodium
+            ## Needs more salt...
+            ### Password hashing and why you should care about libsodium
 
             <img src="img/saltshaker.jpg" alt="" style="width: 25%;">
 
@@ -39,18 +39,35 @@
           <textarea data-template>
             ## whoami
 
-            * Software Engineer @ ShootProof
-            * Avid gamer, Musician, Geek Orthodox
-            * On the internet: [@syntacticNaCl](https://keybase.io/syntacticnacl)
+            * Backend Engineer @ ShootProof
+            * Avid table-top gamer, Musician, Geek Orthodox
+            * On the interwebs: @syntacticNaCl (twitter, IRC Freenode, keybase, etc)
+            * PGP fingerprint: [006D-AEF3-307B-8D22-0109-8B32-7EC3-55D1-CBC7-123C](https://keybase.io/syntacticnacl)
           </textarea>
         </section>
         <section data-markdown>
+          <textarea data-template>
+            ## outline
+
+            * Password hashing algorithms
+            * Password best practices
+            * libsodium
+            * Encryption with libsodium
+            * Encryption best practices
+            * Demo Argon2i
+            * Demo Encrypt/Decrypt with libsodium
+          </textarea>
+        </section>
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
             ## Disclaimer
 
             I am not:
             * A cryptographer by trade
             * An expert in cryptography
+
+            Note:
+		        * Cryptography is just fascinating
           </textarea>
         </section>
 
@@ -65,12 +82,15 @@
         </section>
 
         <section>
-          <section data-markdown>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
               ## NaCl
 
               * NaCl - Pronounced "salt"
               * Networking and Cryptography library
+
+              Note:
+              * NaCl is the chemical forumula for Sodium Chloride or Salt
             </textarea>
           </section>
 
@@ -88,12 +108,22 @@
             <textarea data-template>
               ## What is libsodium?
 
-              Sodium is a modern, easy-to-use software library for encryption, decryption, signatures, password hashing, and more.
+              * Sodium is a modern, easy-to-use software library for encryption, decryption, signatures, password hashing, and more.
+              * Audited and verified
 
               Note:
               * It is a portable, cross-compilable, installable, packageable fork of NaCl, with a compatible API, and an extended API to improve usability even further.
               * Fork of NaCl with a compatible API
-              * Audited and verified
+              * IMPORTANT: Audited and verified
+              * Bindings for many languages including PHP, Python, and GO
+            </textarea>
+          </section>
+
+          <section data-markdown>
+            <textarea data-template>
+              ## libsodium goal
+
+              > ... to provide all of the core operations needed to build higher-level cryptographic tools
             </textarea>
           </section>
 
@@ -107,11 +137,30 @@
               audited by Dr. Matthew Green and team at cryptoengineers.com
             </textarea>
           </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            ## libsodium in PHP
+
+            Supported as of PHP 7.2.0 and newer
+
+            Compile PHP with libsodium or install via PECL
+
+            <pre>
+              <code data-trim data-noescape>
+                --with-sodium
+	            </code>
+            </pre>
+          </textarea>
+          </section>
         </section>
 
-        <section data-markdown>
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
             ## I Care Why?
+
+            Note:
+            * Before we get to libsodium, lets discuss password hashing in PHP
+            * Although libsodium covers hashing algorithms it is best to use PHP's core functions to handle this
           </textarea>
         </section>
 
@@ -144,15 +193,17 @@
 
         <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
-            ## Lets take a brief trip
+            ## Let's take a brief trip
 
             Down password hashing memory lane...
 
+            <img src="img/base64_a_password.png" alt="" style="width: 50%;">
+
             Note:
             * I am only going to discuss a couple of hashing algorithms that are in the scope of this presentation
-            ** MD5
-            ** bcrypt
-            ** Argon2
+              * MD5
+              * bcrypt
+              * Argon2
           </textarea>
         </section>
 
@@ -168,7 +219,7 @@
             * Originally designed as a cryptographic hash function
             * Incredibly vulnerable due to hash collisions
             * Especially vulnerable to GPU cracking due to the nature of the algorithm
-            ** Can easily optimize a GPU to crack MD5 efficiently
+              * Can easily optimize a GPU to crack MD5 efficiently
             * Best used for checksums to verify data integrity, but only against uintentional corruption. NOT intentional tampering
             </textarea>
           </section>
@@ -180,7 +231,7 @@
               <pre>
                 <code data-trim data-noescape>
                   // NOOOOOOO!!!
-                  $hash = md5($password); 
+                  $hash = md5($password);
 	              </code>
               </pre>
             </textarea>
@@ -251,8 +302,8 @@
 
               Note:
               * Cryptographers got smarter and started storing configuration values in the hash itself
-              ** No longer have to pull from different storage mediums to access information about the hash
-              ** Makes hash easier to verify in one fail swoop since what is need is in the hash itself
+                * No longer have to pull from different storage mediums to access information about the hash
+                * Makes hash easier to verify in one fail swoop since what is need is in the hash itself
               * Allows for increasing cost - which represents a key expansion iteration count
               * All pieces add up to an encoded 60 character string
             </textarea>
@@ -270,6 +321,7 @@
 
               Note:
               * The one PHP password hashing function to rule them all
+              * One ring to find them... ok sorry, lets move on
             </textarea>
           </section>
         </section>
@@ -279,14 +331,14 @@
             <textarea data-template>
             ## Argon2
 
-            * Winner of Password Hashing Competition in July 2015
+            * Winner of Password Hashing Competition (PHC) in July 2015
             * Variable-length hash function
+            * 3 variations
+              * Argon2d
+              * Argon2i
+              * Argon2id
 
             Note:
-            * Argon2d maximizes resistance to GPU cracking attacks. It accesses the memory array in a password dependent order, which reduces the possibility of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
-            * Argon2i is optimized to resist side-channel attacks. It accesses the memory array in a password independent order.
-            * Argon2id is a hybrid version. It follows the Argon2i approach for the first pass over memory and the Argon2d approach for subsequent passes. The Internet draft[4] recommends using Argon2id except when there are reasons to prefer one of the other two modes.
-
             All three modes allow specification by three parameters that control:
             * execution time
             * memory required
@@ -296,25 +348,70 @@
 
           <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
-              ## argon2i hash breakdown
+            ## Argon2d
+
+            * Maximizes resistance to GPU cracking attacks
+            * Accesses memory array in password dependent order
+            * Resistant to time-memory trade-off (TMTO) attacks
+            * Possibility of side-channel attacks
+
+            Note:
+            * Argon2d maximizes resistance to GPU cracking attacks.
+            * It accesses the memory array in a password dependent order, which reduces the possibility of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
+            * In the wild it is typically used for crytocurrency and other applications with no threats from side-channel attacks
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## Argon2i
+
+            * Optimized to resist side-channel attacks
+            * Accesses memory array in password independent order
+
+            Note:
+            * Argon2i is optimized to resist side-channel attacks.
+            * It accesses the memory array in a password independent order.
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## Argon2id
+
+            * Recommended variation
+            * Hybrid of Argon2i and Argon2d
+            * It follows the Argon2i approach for the first pass over memory and the Argon2d approach for subsequent passes.
+            * This makes it more resistant to both TMTO and side-channel attacks
+
+            Note:
+            * Argon2id is a hybrid version.
+            * It follows the Argon2i approach for the first pass over memory and the Argon2d approach for subsequent passes.
+            * Recommend using Argon2id except when there are reasons to prefer one of the other two modes.
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## argon2id hash breakdown
               <pre>
                 <code data-trim data-noescape>
-                  $argon2i$v=19$m=1024,t=2,p=2$bDA0aG5DOXRXVm01RFMxeA$ZIiAX+esugM1UeRwZEPEPax9OzLIXFSM1qNQjgexU3o
+                  $argon2id$v=19$m=1024,t=2,p=2$bmtTVmlKMFVyWnMuYWtkZA$oZKud4eOmRKxz8x2HizDzA04Abc5TyMBDHCGqDgkXgI
                 </code>
               </pre>
 
-              * argon2i - variant
+              * argon2id - variant
               * v=19 - version
               * m=1024 - memory size in kibibytes
               * t=2 - iterations
               * p=2 - parallelism
-              * $bD... - base-64 encoded salt
-              * $ZI... - base-64 encoded hash
+              * $bmt... - base-64 encoded salt
+              * $oZK... - base-64 encoded hash
 
               Note:
               * Cryptographers got smarter and started storing configuration values in the hash itself
-              ** No longer have to pull from different storage mediums to access information about the hash
-              ** Makes hash easier to verify in one fail swoop since what is need is in the hash itself
+                * No longer have to pull from different storage mediums to access information about the hash
+                * Makes hash easier to verify in one fail swoop since what is need is in the hash itself
               * Allows for increasing cost - which represents a key expansion iteration count
               * All pieces add up to an encoded 60 character string
             </textarea>
@@ -324,8 +421,8 @@
             <textarea data-template>
               ## argon2 in PHP
 
-              * Argon2I - available as of PHP 7.2
-              * Argon2ID - available as of PHP 7.3
+              * Argon2i - available as of PHP 7.2
+              * Argon2id - available as of PHP 7.3
               * PHP must be compiled with Argon2 support
 
               <pre>
@@ -336,7 +433,7 @@
 
               Note:
               * PHP must be compiled with Argon2 support
-              * Again Argon2ID is recommended
+              * Again Argon2id is recommended
             </textarea>
           </section>
         </section>
@@ -344,7 +441,7 @@
         <section>
           <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
-            ## PHP core team figured it out
+            ## PHP core figured it out
 
             * [password_get_info](https://php.net/manual/en/function.password-get-info.php) — Returns information about the given hash
             * [password_hash](https://php.net/manual/en/function.password-hash.php) — Creates a password hash
@@ -379,7 +476,7 @@
               Note:
               * Returns information about the given hash
               * When passed in a valid hash created by an algorithm supported by password_hash(),
-                this function will return an array of information about that hash. 
+                this function will return an array of information about that hash.
             </textarea>
           </section>
 
@@ -475,9 +572,10 @@
         <section data-markdown>
           <textarea data-template>
           ## Thanks
+          * *IRC Freenode*: syntacticNaCl
           * *Twitter*: @syntacticNaCl
           * *Github*: syntacticNaCl
-          * *Email*: garrettrappaport@protonmail.com
+          * *Email*: garrettrappaport@protonmail.ch
           * *Website*: syntacticnacl.com
           </textarea>
         </section>
