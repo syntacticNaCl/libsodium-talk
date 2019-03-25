@@ -158,9 +158,11 @@
           <textarea data-template>
             ## I Care Why?
 
+            <img src="img/stop.gif" alt="" style="width: 50%;">
+
             Note:
             * Before we get to libsodium, lets discuss password hashing in PHP
-            * Although libsodium covers hashing algorithms it is best to use PHP's core functions to handle this
+            * Libsodium has password hashing operations and we will discuss them, however, in most people's case it is much easier to just use PHP's core functions
           </textarea>
         </section>
 
@@ -267,7 +269,7 @@
             <textarea data-template>
             ## MD5 hashing passwords
 
-            <img src="img/stop.gif" alt="" style="width: 50%;">
+            <img src="img/office-no.gif" alt="" style="width: 50%;">
 
             </textarea>
           </section>
@@ -439,6 +441,40 @@
         </section>
 
         <section>
+          <section data-markdown>
+            <textarea data-template>
+              ## Password hashing in libsodium
+
+              * sodium_crypto_pwhash_str()
+
+              <pre>
+                <code data-trim data-noescape>
+                  sodium_crypto_pwhash_str(
+                      $password,
+                      SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
+                      SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
+                  );
+                </code>
+              </pre>
+            </textarea>
+          </section>
+
+          <section data-markdown>
+            <textarea data-template>
+              ## Password hashing in libsodium
+
+              * sodium_crypto_pwhash_str_verify()
+
+              <pre>
+                <code data-trim data-noescape>
+                  sodium_crypto_pwhash_str_verify($hashedPassword, $password)
+                </code>
+              </pre>
+            </textarea>
+          </section>
+        </section>
+
+        <section>
           <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
             ## PHP core figured it out
@@ -558,14 +594,146 @@
           </section>
         </section>
 
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## Encryption
+
+              <img src="img/encrypt-all.png" alt="" style="width: 25%;">
+
+              Note:
+              * No more hash(password) === hashedPassword
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## Encryption vs Authenticated Encrpytion
+
+              * Why is this important?
+              * Why does the order matter?
+
+              Note:
+              * Encryption renders the mssage unreadable without the correct key
+              * Authentication makes a message tamper-resistant
+              * When I use the word authentication it refers to the authenticity of the message not the authentication of an identity
+              * ParagonIE's blog uses these descriptions which I found really helpful
+                * Encrpytion does not provide intergrity
+                * Authentication does not provide confidentiality
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## MAC
+
+              * Message Authentication Code
+
+              Note:
+              * Short piece of information used to authenticate a message
+              * Protects both message's data integrity as well as its authenticity
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## Order of operations
+
+              * Always encrypt then MAC!
+              * In other words, encrypt then authenticate
+              * This allows for authentication then decryption on the other end
+
+              Note:
+              * Short piece of information used to authenticate a message
+              * https://moxie.org/blog/the-cryptographic-doom-principle/
+              * Vaudenay attack (beyond scope of presentation but look it up)
+              * This order allows us to authenticate first then decrypt which can prevent some common attacks like the Vaudenay attack
+          </textarea>
+        </section>
+
+        <section>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## Libsodium encryption in PHP
+
+              * sodium_memzero()
+              * random_bytes()
+              * sodium_crypto_secretbox()
+              * sodium_crypto_secretbox_open()
+
+              Note:
+              * Here are the four functions that you need to know for doing a proper authenticated encryption
+              * Next we will discuss the methods required to do a proper authenticated encrypt/decrypt
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## Wiping sensitive data
+
+              * sodium_memzero()
+
+              Note:
+              * Used to destroy sensitive information like keys, plaintext, and ciphertext
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## Generating secure random values
+
+              * random_bytes()
+
+              Note:
+              * Uses kernel CSPRNG, not userspace CSPRNG
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## Encryption
+
+              * sodium_crypto_secretbox()
+
+              Note:
+              * Uses kernel CSPRNG, not userspace CSPRNG
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## Decryption
+
+              * sodium_crypto_secretbox_open()
+
+              Note:
+              * Uses kernel CSPRNG, not userspace CSPRNG
+            </textarea>
+          </section>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## Halite
+
+              * [pargonie/halite](https://github.com/paragonie/halite)
+
+              Note:
+              * Halite is a high-level cryptography interface that relies on libsodium for all of its underlying cryptography operations
+              * It's just an abstraction of what we did here today
+              * ParagonIE is a great resource for using libsodium in PHP
+          </textarea>
+        </section>
+
         <section data-markdown>
           <textarea data-template>
           ## Resources
           * [libsodium Security Assessment](https://www.privateinternetaccess.com/blog/2017/08/libsodium-v1-0-12-and-v1-0-13-security-assessment/)
           * [libsodium docs](https://download.libsodium.org/doc/)
+          * [Using libsodium in PHP](https://paragonie.com/book/pecl-libsodium)
           * [NaCl docs](https://nacl.cr.yp.to/)
           * [MD5](https://en.wikipedia.org/wiki/MD5)
           * [bcrypt](https://en.wikipedia.org/wiki/Bcrypt)
+          * [Why order of encryption and authentication is important](https://moxie.org/blog/the-cryptographic-doom-principle/)
           </textarea>
         </section>
 
