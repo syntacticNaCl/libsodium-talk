@@ -441,15 +441,30 @@
         </section>
 
         <section>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## Hashing in libsodium
+
+              * Password hashing - `crypto_pwhash()`
+              * Generic hashing - `crypto_generichash()`
+              * Short hashing - `crypto_shorthash()`
+
+              Note:
+              * Password hashing - Secure password storage, key derivation from user input
+              * Generic hashing - Collision- and preimage-resistant; replace MD5/SHA1/etc.
+              * Short hashing - Hash tables, bloom filters, cache lookup keys
+            </textarea>
+          </section>
+
           <section data-markdown>
             <textarea data-template>
-              ## Password hashing in libsodium
+              ## Creating a password hash in libsodium
 
               * sodium_crypto_pwhash_str()
 
               <pre>
                 <code data-trim data-noescape>
-                  sodium_crypto_pwhash_str(
+                  $hash = sodium_crypto_pwhash_str(
                       $password,
                       SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
                       SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
@@ -459,15 +474,15 @@
             </textarea>
           </section>
 
-          <section data-markdown>
+          <section data-markdown
             <textarea data-template>
-              ## Password hashing in libsodium
+              ## Verifying a password hash in libsodium
 
               * sodium_crypto_pwhash_str_verify()
 
               <pre>
                 <code data-trim data-noescape>
-                  sodium_crypto_pwhash_str_verify($hashedPassword, $password)
+                  $verified = sodium_crypto_pwhash_str_verify($hashedPassword, $password)
                 </code>
               </pre>
             </textarea>
@@ -543,6 +558,8 @@
 
               Note:
               * Creates a password hash
+              * Note regarding storing password hashes. If you use PASSWORD_DEFAULT, please take into account the length of the digest which could increase over time. 255 characters should be enough for most if not all digests
+              * Probably good advice for all uses of password_hash(). That way you can upgrade hashes at any time using the password_needs_rehash() check + password_hash()
               * PASSWORD_DEFAULT - Use the bcrypt algorithm (default as of PHP 5.5.0). Note that this constant is designed to change over time as new and stronger algorithms are added to PHP. For that reason, the length of the result from using this identifier can change over time. Therefore, it is recommended to store the result in a database column that can expand beyond 60 characters (255 characters would be a good choice).
               * PASSWORD_BCRYPT - Use the CRYPT_BLOWFISH algorithm to create the hash. This will produce a standard crypt() compatible hash using the "$2y$" identifier. The result will always be a 60 character string, or FALSE on failure.
               * PASSWORD_ARGON2I - Use the Argon2i hashing algorithm to create the hash. This algorithm is only available if PHP has been compiled with Argon2 support.
@@ -662,7 +679,8 @@
 
               Note:
               * Here are the four functions that you need to know for doing a proper authenticated encryption
-              * Next we will discuss the methods required to do a proper authenticated encrypt/decrypt
+              * I am only discussing secret-key authenticated encryption
+              * There are others for libsodium regarding public-key cryptography
             </textarea>
           </section>
 
@@ -681,10 +699,14 @@
             <textarea data-template>
               ## Generating secure random values
 
-              * random_bytes()
+              * Use random_bytes()
+              * Issues in the past with other functions calling userspace CSPRNGs
+              * Userspace CSPRNGs are bad
 
               Note:
               * Uses kernel CSPRNG, not userspace CSPRNG
+              * There were some issues in the past with openssl_random_pseudo_bytes()
+              * Those issues were rectified I believe, but its safer to just use random_bytes() at this point
             </textarea>
           </section>
 
@@ -721,6 +743,15 @@
               * Halite is a high-level cryptography interface that relies on libsodium for all of its underlying cryptography operations
               * It's just an abstraction of what we did here today
               * ParagonIE is a great resource for using libsodium in PHP
+          </textarea>
+        </section>
+
+        <section data-markdown>
+          <textarea data-template>
+            ## Demo Time
+
+            <img src="img/demo.gif" alt="" style="width: 50%;">
+
           </textarea>
         </section>
 
