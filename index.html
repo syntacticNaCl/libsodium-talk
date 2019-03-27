@@ -45,17 +45,23 @@
             * PGP fingerprint: [006D-AEF3-307B-8D22-0109-8B32-7EC3-55D1-CBC7-123C](https://keybase.io/syntacticnacl)
           </textarea>
         </section>
-        <section data-markdown>
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
             ## outline
 
             * Password hashing algorithms
             * Password best practices
             * libsodium
+            * Password hashing with libsodium
             * Encryption with libsodium
             * Encryption best practices
             * Demo Argon2i
             * Demo Encrypt/Decrypt with libsodium
+
+            Note:
+		        * Quick show of hands
+		        * Who has implemented some form of password hashing or encryption in an application?
+		        * Who has heard of libsodium?
           </textarea>
         </section>
         <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
@@ -90,6 +96,8 @@
               * Networking and Cryptography library
 
               Note:
+              * NaCl is a cryptographic library
+              * Stands for Networking and Cryptography library
               * NaCl is the chemical forumula for Sodium Chloride or Salt
             </textarea>
           </section>
@@ -112,10 +120,9 @@
               * Audited and verified
 
               Note:
-              * It is a portable, cross-compilable, installable, packageable fork of NaCl, with a compatible API, and an extended API to improve usability even further.
-              * Fork of NaCl with a compatible API
+              * Fork of NaCl with a compatible API and some extensions to improve usability even further
               * IMPORTANT: Audited and verified
-              * Bindings for many languages including PHP, Python, and GO
+              * Bindings for many languages including PHP, Python, GO, etc
             </textarea>
           </section>
 
@@ -204,6 +211,8 @@
             * Widely used password hashing functions and algorithms in PHP
               * MD5
               * bcrypt
+              * scrypt
+              * PBKDF2
               * Argon2
           </textarea>
         </section>
@@ -351,7 +360,23 @@
               Note:
               * More hardened than bcrypt against a distributed cracking system
               * Simplified version of scrypt is used in proof-of-work schemes for cryptocurrencies
-              * One ring to find them... ok sorry, lets move on
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## PBKDF2
+
+              * Password-Based Key Derivation Function 2
+              * Part of RSA Laboratories' Public-Key Cryptography Standards
+              * Part of RSA Laboratories' Public-Key Cryptography Standards
+
+              Note:
+              * Allows for multiple iterations over an HMAC or other pseudorandom function, while mixing in salt over a configurable number of iterations
+              * Very similar to scrypt and bcrypt
+              * Cons
+                * Generation and storage of salts is left to the implementor, who must also determine an appropriate PRF to use
+                * Suffers from same symptoms as scrypt. Not as widely used and can be difficult to implement
             </textarea>
           </section>
         </section>
@@ -369,7 +394,7 @@
               * Argon2id
 
             Note:
-            All three modes allow specification by three parameters that control:
+            All three modes allow specification of three parameters that control:
             * execution time
             * memory required
             * threads - or degree of parallelism
@@ -443,7 +468,6 @@
                 * No longer have to pull from different storage mediums to access information about the hash
                 * Makes hash easier to verify in one fail swoop since what is need is in the hash itself
               * Allows for increasing cost - which represents a key expansion iteration count
-              * All pieces add up to an encoded 60 character string
             </textarea>
           </section>
 
@@ -479,7 +503,7 @@
 
               Note:
               * Password hashing - Secure password storage, key derivation from user input
-              * Generic hashing - Collision- and preimage-resistant; replace MD5/SHA1/etc.
+              * Generic hashing - It is collision and preimage-resistant; replace MD5/SHA1/etc.
               * Short hashing - Hash tables, bloom filters, cache lookup keys
             </textarea>
           </section>
@@ -504,6 +528,12 @@
               * Hashes are calculated using the Argon2id algorithm
               * In contrast to the password_hash function, there is no salt parameter (salt is generated automatically)
               * opslimit and memlimit parameters are not optional
+              * These limits are on the lower end and only require 64MiB of dedicated RAM
+              * There is also
+                * SODIUM_CRYPTO_PWHASH_OPSLIMIT_MODERATE
+                * SODIUM_CRYPTO_PWHASH_OPSLIMIT_SENSITIVE
+              * These require increased memory and cpu requirements
+              * All on libsodiums documentation
             </textarea>
           </section>
 
@@ -515,7 +545,11 @@
 
               <pre>
                 <code data-trim data-noescape>
-                  $verified = sodium_crypto_pwhash_str_verify($hashedPassword, $password)
+                  verified = sodium_crypto_pwhash_str_verify(
+                      $password,
+                      SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
+                      SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
+                  );
                 </code>
               </pre>
 
@@ -537,8 +571,7 @@
 
             Note:
             * No need for special password hashing implementations
-            * One function to rule them all
-            * These are all you need:
+            * These are all you need
             </textarea>
           </section>
 
@@ -548,12 +581,12 @@
 
               <pre>
                 <code data-trim data-noescape>
-                    print_r( password_get_info( $password_hash ) );
+                    password_get_info ( string $hash ) : array
 
                     /* returns:
                     Array (
                         [algo] => 1
-                        [algoName] => bcrypt  // Your server's default.
+                        [algoName] => bcrypt
                         [options] => Array ( [cost] => 11 )
                     )
                     */
@@ -573,13 +606,38 @@
 
               <pre>
                 <code data-trim data-noescape>
-                    // PASSWORD_DEFAULT currently is set to use the bcrypt algorithm
-                    echo password_hash("supersecretpassword", PASSWORD_DEFAULT);
-                    // $2y$10$5ueXbCtUXb8mQFGoCnzvMObnyOwauldtMO4UTsDg6P6n6Xk2QghEu
+                  password_hash ( string $password , int $algo [, array $options ] ) : string
                 </code>
               </pre>
               Note:
               * Creates a password hash
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## password_hash options
+
+              * PASSWORD_DEFAULT - options available `cost`
+              * PASSWORD_ARGON2I - options available `memory_cost`, `time_cost`, `threads`
+              * PASSWORD_ARGON2ID - options available `memory_cost`, `time_cost`, `threads`
+
+              Note:
+              * Creates a password hash
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## password_hash option defaults
+
+              * Memory and Parallelism or threads - set is as high as you can comfortably support
+              * Iterations - Start with a low value (10) and move up from there
+
+              Note:
+              * Largely dependent on server hardware
+              * Iterations requires some testing.
+              * Run some benchmarks on your system and see what works for you
             </textarea>
           </section>
 
@@ -653,10 +711,11 @@
 
               * Bcrypt
               * Scrypt
+              * PBKDF2
               * Argon2
 
               Note:
-              * Bcrypt and Scrypt are great and solid when configured with the correct parameters
+              * Bcrypt, Scrypt, and PBKDF2 are great and solid when configured with the correct parameters
               * Argon2 is better but still needs time to prove itself
                 * It has been almost 4 years since winning PHC
                 * That is a good amount of time but use at your own risk
@@ -667,7 +726,7 @@
           <textarea data-template>
               ## Many password, what do?
 
-              * password_hash() vs sodium_crypto_pwhash_str_verify()
+              * password_hash() vs sodium_crypto_pwhash_str()
 
               Note:
               * They both accomplish largely the same goal
@@ -686,23 +745,39 @@
               <img src="img/encrypt-all.png" alt="" style="width: 25%;">
 
               Note:
-              * No more hash(password) === hashedPassword
+              * Before we get into encryption with libsodium, lets clarify some important concepts
           </textarea>
         </section>
 
         <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
-              ## Encryption vs Authenticated Encrpytion
+              ## Encryption vs Authenticated Encryption
 
               * Why is this important?
-              * Why does the order matter?
+              * Why does the order of authentication and encryption matter?
 
               Note:
-              * Encryption renders the mssage unreadable without the correct key
+              * Encryption renders the message unreadable without the correct key
               * Authentication makes a message tamper-resistant
               * When I use the word authentication it refers to the authenticity of the message not the authentication of an identity
               * ParagonIE's blog uses these descriptions which I found really helpful
-                * Encrpytion does not provide intergrity
+                * Encryption does not provide integrity
+                * Authentication does not provide confidentiality
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## Why is Authenticated Encryption important
+
+              * Prevents bit-rewriting attacks
+
+              Note:
+              * Encryption renders the message unreadable without the correct key
+              * Authentication makes a message tamper-resistant
+              * When I use the word authentication it refers to the authenticity of the message not the authentication of an identity
+              * ParagonIE's blog uses these descriptions which I found really helpful
+                * Encryption does not provide intergrity
                 * Authentication does not provide confidentiality
           </textarea>
         </section>
@@ -732,6 +807,11 @@
               * https://moxie.org/blog/the-cryptographic-doom-principle/
               * Vaudenay attack (beyond scope of presentation but look it up)
               * This order allows us to authenticate first then decrypt which can prevent some common attacks like the Vaudenay attack
+              * Essentially the attacker can modify the last byte in the ciphertext and check for error messages
+                * Doesn't need to be an error message you can typically tell by the timing of the error response
+              * Once they receive what would represent an invalid MAC error, they know what the last byte is
+              * Rinse and repeat until the ciphertext is decrypted
+              * By verifying the MAC first, this attack is not able to be executed
           </textarea>
         </section>
 
@@ -748,7 +828,7 @@
               Note:
               * Here are the four functions that you need to know for doing a proper authenticated encryption
               * I am only discussing secret-key authenticated encryption
-              * There are others for libsodium regarding public-key cryptography
+              * There are others for libsodium regarding public-key cryptography and other cryptographic primitives
             </textarea>
           </section>
 
@@ -756,7 +836,11 @@
             <textarea data-template>
               ## Wiping sensitive data
 
-              * sodium_memzero()
+              <pre>
+                <code data-trim data-noescape>
+                  sodium_memzero ( string &$buf ) : void
+                </code>
+              </pre>
 
               Note:
               * Used to destroy sensitive information like keys, plaintext, and ciphertext
@@ -767,13 +851,21 @@
             <textarea data-template>
               ## Generating secure random values
 
+              <pre>
+                <code data-trim data-noescape>
+                  random_bytes ( int $length ) : string
+	              </code>
+              </pre>
+
               * Use random_bytes()
               * Issues in the past with other functions calling userspace CSPRNGs
               * Userspace CSPRNGs are bad
 
               Note:
               * Uses kernel CSPRNG, not userspace CSPRNG
+              * cryptographically secure pseudo-random number generator (CSPRNG)
               * There were some issues in the past with openssl_random_pseudo_bytes()
+              * Honestly OpenSSL hasn't had the best track record with security
               * Those issues were rectified I believe, but its safer to just use random_bytes() at this point
             </textarea>
           </section>
@@ -782,10 +874,15 @@
             <textarea data-template>
               ## Encryption
 
-              * sodium_crypto_secretbox()
-
+              <pre>
+                <code data-trim data-noescape>
+                  sodium_crypto_secretbox ( string $string , string $nonce , string $key ) : string
+	              </code>
+              </pre>
               Note:
-              * Uses kernel CSPRNG, not userspace CSPRNG
+              * Implements symmetric, or shared-key, authenticated encryption
+              * Useful when using a pre-shared key or a negotiated key
+              * The same can be done when using a negotiated key, as opposed to a shared-key, via something like Elliptic Curve Diffie-Hellman
             </textarea>
           </section>
 
@@ -793,10 +890,14 @@
             <textarea data-template>
               ## Decryption
 
-              * sodium_crypto_secretbox_open()
+              <pre>
+                <code data-trim data-noescape>
+                  sodium_crypto_box_open ( string $ciphertext , string $nonce , string $key ) : string
+	              </code>
+              </pre>
 
               Note:
-              * Uses kernel CSPRNG, not userspace CSPRNG
+              * Decrypts with same nonce and key used in encryption
             </textarea>
           </section>
         </section>
@@ -810,7 +911,7 @@
               Note:
               * Halite is a high-level cryptography interface that relies on libsodium for all of its underlying cryptography operations
               * It's just an abstraction of what we did here today
-              * ParagonIE is a great resource for using libsodium in PHP
+              * ParagonIE is a great resource for using libsodium in PHP and other security topics
           </textarea>
         </section>
 
@@ -825,6 +926,15 @@
 
         <section data-markdown>
           <textarea data-template>
+            ## Questions???
+
+            <img src="img/questions.gif" alt="" style="width: 50%;">
+
+          </textarea>
+        </section>
+
+        <section data-markdown>
+          <textarea data-template>
           ## Resources
           * [libsodium Security Assessment](https://www.privateinternetaccess.com/blog/2017/08/libsodium-v1-0-12-and-v1-0-13-security-assessment/)
           * [libsodium docs](https://download.libsodium.org/doc/)
@@ -833,6 +943,7 @@
           * [MD5](https://en.wikipedia.org/wiki/MD5)
           * [bcrypt](https://en.wikipedia.org/wiki/Bcrypt)
           * [Why order of encryption and authentication is important](https://moxie.org/blog/the-cryptographic-doom-principle/)
+          * [ParagonIE](https://paragonie.com/blog)
           </textarea>
         </section>
 

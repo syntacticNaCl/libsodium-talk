@@ -11,6 +11,7 @@
 **** Password hashing algorithms
 **** Password best practices
 **** libsodium
+**** Password hashing with libsodium
 **** Encryption with libsodium
 **** Encryption best practices
 **** Demo Argon2i
