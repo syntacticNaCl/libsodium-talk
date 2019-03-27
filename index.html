@@ -161,8 +161,7 @@
             <img src="img/stop.gif" alt="" style="width: 50%;">
 
             Note:
-            * Before we get to libsodium, lets discuss password hashing in PHP
-            * Libsodium has password hashing operations and we will discuss them, however, in most people's case it is much easier to just use PHP's core functions
+            * Before we dive into libsodium lets discuss some password hashing basics
           </textarea>
         </section>
 
@@ -202,7 +201,7 @@
             <img src="img/base64_a_password.png" alt="" style="width: 50%;">
 
             Note:
-            * I am only going to discuss a couple of hashing algorithms that are in the scope of this presentation
+            * Widely used password hashing functions and algorithms in PHP
               * MD5
               * bcrypt
               * Argon2
@@ -214,8 +213,13 @@
             <textarea data-template>
             ## MD5 hashing function
 
-            * Incredibly Vulnerable to hash collisions
-            * GPU's render (hehe) MD5 unbelievably broken
+            * Pros:
+              * It's really fast
+              * Useful for checksum verification (unintentional corruption)
+            * Cons:
+              * It's really fast
+              * Incredibly Vulnerable to hash collisions
+              * GPU's render (hehe) MD5 unbelievably broken
 
             Note:
             * Originally designed as a cryptographic hash function
@@ -223,6 +227,11 @@
             * Especially vulnerable to GPU cracking due to the nature of the algorithm
               * Can easily optimize a GPU to crack MD5 efficiently
             * Best used for checksums to verify data integrity, but only against uintentional corruption. NOT intentional tampering
+            * MD5's ultimate downfall is that it is too fast and that it is not configurable
+              * Hardware is too fast now-a-days
+            * You are also dealing with an entropy problem
+              * Remember entropy is not length, it is the use of characters that are unknown to the attacker
+              * Length of a password plays a very small role in how safe it is
             </textarea>
           </section>
 
@@ -285,6 +294,10 @@
 
             Note:
             * Allows for increasing cost
+            * Cons
+              * Low memory usage
+              * Vulnerable to cost-effective brute-forcing
+                * Using Field Programmable Gate Arrays or FPGAs
             </textarea>
           </section>
 
@@ -323,6 +336,21 @@
 
               Note:
               * The one PHP password hashing function to rule them all
+              * One ring to find them... ok sorry, lets move on
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+              ## scrypt
+
+              * Arguably safer due to more configuration
+              * Very few scrypt implementations
+              * Not as widely used, and not an option in PHP's core password functions
+
+              Note:
+              * More hardened than bcrypt against a distributed cracking system
+              * Simplified version of scrypt is used in proof-of-work schemes for cryptocurrencies
               * One ring to find them... ok sorry, lets move on
             </textarea>
           </section>
@@ -456,7 +484,7 @@
             </textarea>
           </section>
 
-          <section data-markdown>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
               ## Creating a password hash in libsodium
 
@@ -471,10 +499,15 @@
                   );
                 </code>
               </pre>
+
+              Note:
+              * Hashes are calculated using the Argon2id algorithm
+              * In contrast to the password_hash function, there is no salt parameter (salt is generated automatically)
+              * opslimit and memlimit parameters are not optional
             </textarea>
           </section>
 
-          <section data-markdown
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
               ## Verifying a password hash in libsodium
 
@@ -485,6 +518,9 @@
                   $verified = sodium_crypto_pwhash_str_verify($hashedPassword, $password)
                 </code>
               </pre>
+
+              Note:
+              * Same opslimit and memlimit parameters should be used
             </textarea>
           </section>
         </section>
@@ -609,6 +645,38 @@
               * No more hash(password) === hashedPassword
             </textarea>
           </section>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## Many algorithm, what do?
+
+              * Bcrypt
+              * Scrypt
+              * Argon2
+
+              Note:
+              * Bcrypt and Scrypt are great and solid when configured with the correct parameters
+              * Argon2 is better but still needs time to prove itself
+                * It has been almost 4 years since winning PHC
+                * That is a good amount of time but use at your own risk
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+              ## Many password, what do?
+
+              * password_hash() vs sodium_crypto_pwhash_str_verify()
+
+              Note:
+              * They both accomplish largely the same goal
+              * The important part is that they are used responsibly
+              * DO NOT use your own salt unless you know what you are doing, just let it generate it for your
+              * sodium_crypto_pwhash_str_verify doesn't allow for manual salt creation and enforces a default limit for opslimit and memlimit
+              * password_hash() also takes similar parameters so you can use it responsibly as well
+              * Use what you want, but be smart about it
+          </textarea>
         </section>
 
         <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
