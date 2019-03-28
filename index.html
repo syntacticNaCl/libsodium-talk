@@ -47,7 +47,7 @@
         </section>
         <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
-            ## outline
+            ## agenda
 
             * Password hashing algorithms
             * Password best practices
@@ -150,7 +150,7 @@
 
             Supported as of PHP 7.2.0 and newer
 
-            Compile PHP with libsodium or install via PECL
+            Compile PHP with libsodium, install via PECL, or OS package manager
 
             <pre>
               <code data-trim data-noescape>
@@ -353,9 +353,11 @@
             <textarea data-template>
               ## scrypt
 
-              * Arguably safer due to more configuration
-              * Very few scrypt implementations
-              * Not as widely used, and not an option in PHP's core password functions
+              * Pros
+                * Arguably safer due to more configuration
+              * Cons
+                * Very few scrypt implementations
+                * Not as widely used, and not an option in PHP's core password functions
 
               Note:
               * More hardened than bcrypt against a distributed cracking system
@@ -392,6 +394,7 @@
               * Argon2d
               * Argon2i
               * Argon2id
+            * Still technically in draft status with the IRTF
 
             Note:
             All three modes allow specification of three parameters that control:
