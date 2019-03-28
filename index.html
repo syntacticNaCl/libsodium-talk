@@ -211,8 +211,6 @@
             * Widely used password hashing functions and algorithms in PHP
               * MD5
               * bcrypt
-              * scrypt
-              * PBKDF2
               * Argon2
           </textarea>
         </section>
@@ -233,11 +231,11 @@
             Note:
             * Originally designed as a cryptographic hash function
             * Incredibly vulnerable due to hash collisions
+              * Hash collisions are when you can find pairs of distinct inputs which hash to the same value
             * Especially vulnerable to GPU cracking due to the nature of the algorithm
               * Can easily optimize a GPU to crack MD5 efficiently
             * Best used for checksums to verify data integrity, but only against uintentional corruption. NOT intentional tampering
             * MD5's ultimate downfall is that it is too fast and that it is not configurable
-              * Hardware is too fast now-a-days
             * You are also dealing with an entropy problem
               * Remember entropy is not length, it is the use of characters that are unknown to the attacker
               * Length of a password plays a very small role in how safe it is
@@ -259,7 +257,7 @@
 
           <section data-markdown>
             <textarea data-template>
-            ## MD5 passwords w/ static salt
+            ## MD5 passwords w/ static "salt"
 
               <pre>
                 <code data-trim data-noescape>
@@ -270,9 +268,9 @@
             </textarea>
           </section>
 
-          <section data-markdown>
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
-            ## MD5 passwords w/ unique salt?
+            ## MD5 passwords w/ unique "salt"?
 
               <pre>
                 <code data-trim data-noescape>
@@ -288,7 +286,23 @@
             ## MD5 hashing passwords
 
             <img src="img/office-no.gif" alt="" style="width: 50%;">
+            </textarea>
+          </section>
 
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
+            ## Its not just MD5...
+
+            * General purpose hashing algorithms are bad choices in general for passwords
+            * This includes MD5, SHA1, SHA2, etc
+
+            Note:
+            * Technically MD5 and SHA1 aren't weaker than SHA-2 in regards to password hashing
+            * All of these functions are in comparison really fast and rely on the entropy of the password input
+            * Relying on the entropy of a user's password is not smart
+            * Hardware is able to try billions of passwords per second! and that is only with a few GPUs
+            * We need hashing functions that are deliberately slow and password hardened such as:
+              * bcrypt, scrypt, or PBKDF2
             </textarea>
           </section>
         </section>
@@ -304,9 +318,10 @@
             Note:
             * Allows for increasing cost
             * Cons
-              * Low memory usage
+              * Low, constant memory usage
               * Vulnerable to cost-effective brute-forcing
                 * Using Field Programmable Gate Arrays or FPGAs
+                * Or a distributed network of CPU or GPU based "crackbots"
             </textarea>
           </section>
 
@@ -348,39 +363,6 @@
               * One ring to find them... ok sorry, lets move on
             </textarea>
           </section>
-
-          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
-            <textarea data-template>
-              ## scrypt
-
-              * Pros
-                * Arguably safer due to more configuration
-              * Cons
-                * Very few scrypt implementations
-                * Not as widely used, and not an option in PHP's core password functions
-
-              Note:
-              * More hardened than bcrypt against a distributed cracking system
-              * Simplified version of scrypt is used in proof-of-work schemes for cryptocurrencies
-            </textarea>
-          </section>
-
-          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
-            <textarea data-template>
-              ## PBKDF2
-
-              * Password-Based Key Derivation Function 2
-              * Part of RSA Laboratories' Public-Key Cryptography Standards
-              * Part of RSA Laboratories' Public-Key Cryptography Standards
-
-              Note:
-              * Allows for multiple iterations over an HMAC or other pseudorandom function, while mixing in salt over a configurable number of iterations
-              * Very similar to scrypt and bcrypt
-              * Cons
-                * Generation and storage of salts is left to the implementor, who must also determine an appropriate PRF to use
-                * Suffers from same symptoms as scrypt. Not as widely used and can be difficult to implement
-            </textarea>
-          </section>
         </section>
 
         <section>
@@ -390,6 +372,8 @@
 
             * Winner of Password Hashing Competition (PHC) in July 2015
             * Variable-length hash function
+            * Internally built on Blake2
+            * Can produce digests up to 2^32 bytes long
             * 3 variations
               * Argon2d
               * Argon2i
@@ -415,7 +399,9 @@
 
             Note:
             * Argon2d maximizes resistance to GPU cracking attacks.
-            * It accesses the memory array in a password dependent order, which reduces the possibility of time–memory trade-off (TMTO) attacks, but introduces possible side-channel attacks.
+            * Dependent refers to dependency on the password itself. This prevents prefetching and precomputing missing data, thus the increased resistance to TMTO attacks
+            * This means the computation happens at the time the element is needed
+            * Conversely, this introduces the possibility of side-channel attacks since timing information based on when the computation happens can help filter out password guesses
             * In the wild it is typically used for crytocurrency and other applications with no threats from side-channel attacks
             </textarea>
           </section>
@@ -429,6 +415,9 @@
 
             Note:
             * Argon2i is optimized to resist side-channel attacks.
+            * Independent refers to independent of the password and salt, but possibly dependent on other public parameters
+            * Because of this, TMTO attacks are more feasable since precomputation is possible
+            * Side-channel attacks are the weaker link of the two main attacks
             * It accesses the memory array in a password independent order.
             </textarea>
           </section>
@@ -495,6 +484,61 @@
           </section>
         </section>
 
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+          ## Side-channel attack
+
+          * Based on "side channel information"
+          * Attackers gather specific information about the device used to encrypt the message
+          * Information regarding:
+            * timing
+            * radiation, heat
+            * power consumption
+            * and more
+
+          Note:
+          * Side channel attacks use information that does not relate to the plaintext or ciphertext
+          * *Anecdote* interesting attacks executed by researchers at the Technion in Israel against airgapped computers
+            * Able to successfully send commands from a computer on the web to an airgapped computer located next to it
+            * Done using the sending of signals based on raising and lowering temperatures on the non-airgapped computer
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+          ## TMTO attack
+
+          * All about "trade-offs":
+          * Shortening running time by using more space (memory)
+          * Improves (memory) usage by adding more computing time
+          * Rainbow tables
+          * Difficult to attack successfully
+
+          Note:
+          * Generic terminology for an algorithm that either improves running time by using more memory or improves memory usage by using more computing time
+          * Rainbow tables sit between:
+            * Precomputed table containing hashes of potention passwords
+            * Exhaustive search of trying all potential passwords
+          * This balancing act allows for narrowing down the possibility of discovering the hash
+          * Salts can be used to thwart precomputed tables, including rainbow tables
+          </textarea>
+        </section>
+
+        <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <textarea data-template>
+          ## Salts
+
+          * Salts should be as unique as possible
+          * Reusing salts is a BAD idea
+
+          Note:
+          * Salts should be unique
+          * Salts don't NEED to be secret, but they also don't NEED to be public
+          * Salts should NOT be things like emails or usernames since even changing the password will keep the same salt
+          * Remember, users tend to re-use passwords all over the internet, especially incremental ones, BobsPassword1, BobsPassword2, etc
+          </textarea>
+        </section>
+
         <section>
           <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
@@ -548,10 +592,9 @@
 
               <pre>
                 <code data-trim data-noescape>
-                  verified = sodium_crypto_pwhash_str_verify(
+                  $verified = sodium_crypto_pwhash_str_verify(
+                      $hash,
                       $password,
-                      SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
-                      SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
                   );
                 </code>
               </pre>
@@ -713,12 +756,10 @@
               ## Many algorithm, what do?
 
               * Bcrypt
-              * Scrypt
-              * PBKDF2
               * Argon2
 
               Note:
-              * Bcrypt, Scrypt, and PBKDF2 are great and solid when configured with the correct parameters
+              * Bcrypt is solid when configured with the correct parameters
               * Argon2 is better but still needs time to prove itself
                 * It has been almost 4 years since winning PHC
                 * That is a good amount of time but use at your own risk
@@ -727,7 +768,7 @@
 
         <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
-              ## Many password, what do?
+              ## Many function, what do?
 
               * password_hash() vs sodium_crypto_pwhash_str()
 
