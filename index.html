@@ -739,11 +739,10 @@
 
           <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
-              ## password_verify argon2
+              ## password_verify when using salts
 
-              * Rehashing a password with Argon2 will be different than any stored hash
+              * Rehashing a password using password_hash will yield a different digest due to random salts
               * Must use `password_verify()`
-              * When in doubt use `password_verify()` instead of hash comparisons
 
               Note:
               * No more hash(password) === hashedPassword
