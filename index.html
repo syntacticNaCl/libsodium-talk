@@ -399,6 +399,7 @@
 
             Note:
             * Argon2d maximizes resistance to GPU cracking attacks.
+            * Accesses memory array in password dependent order
             * Dependent refers to dependency on the password itself. This prevents prefetching and precomputing missing data, thus the increased resistance to TMTO attacks
             * This means the computation happens at the time the element is needed
             * Conversely, this introduces the possibility of side-channel attacks since timing information based on when the computation happens can help filter out password guesses
@@ -415,6 +416,7 @@
 
             Note:
             * Argon2i is optimized to resist side-channel attacks.
+            * Accesses memory array in password independent order
             * Independent refers to independent of the password and salt, but possibly dependent on other public parameters
             * Because of this, TMTO attacks are more feasable since precomputation is possible
             * Side-channel attacks are the weaker link of the two main attacks
@@ -469,7 +471,7 @@
 
               * Argon2i - available as of PHP 7.2
               * Argon2id - available as of PHP 7.3
-              * PHP must be compiled with Argon2 support
+              * PHP must be compiled with Argon2 support or installed with OS package manager
 
               <pre>
                 <code data-trim data-noescape>
@@ -498,9 +500,11 @@
 
           Note:
           * Side channel attacks use information that does not relate to the plaintext or ciphertext
+          * Interesting attack example not directly related to hashing
           * *Anecdote* interesting attacks executed by researchers at the Technion in Israel against airgapped computers
             * Able to successfully send commands from a computer on the web to an airgapped computer located next to it
             * Done using the sending of signals based on raising and lowering temperatures on the non-airgapped computer
+          * There are similar attacks using other electro magnetic signals
           </textarea>
         </section>
 
@@ -662,9 +666,29 @@
 
           <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
+              ## password_hash algorithms
+
+              * PASSWORD_DEFAULT - Uses the bcrypt algorithm (default as of PHP 5.5.0)
+              * PASSWORD_BCRYPT
+              * PASSWORD_ARGON2I
+              * PASSWORD_ARGON2ID
+
+              Note:
+              * Creates a password hash
+              * Note regarding storing password hashes. If you use PASSWORD_DEFAULT, please take into account the length of the digest which could increase over time. 255 characters should be enough for most if not all digests
+              * Probably good advice for all uses of password_hash(). That way you can upgrade hashes at any time using the password_needs_rehash() check + password_hash()
+              * PASSWORD_DEFAULT - Use the bcrypt algorithm (default as of PHP 5.5.0). Note that this constant is designed to change over time as new and stronger algorithms are added to PHP. For that reason, the length of the result from using this identifier can change over time. Therefore, it is recommended to store the result in a database column that can expand beyond 60 characters (255 characters would be a good choice).
+              * PASSWORD_BCRYPT - Use the CRYPT_BLOWFISH algorithm to create the hash. This will produce a standard crypt() compatible hash using the "$2y$" identifier. The result will always be a 60 character string, or FALSE on failure.
+              * PASSWORD_ARGON2I - Use the Argon2i hashing algorithm to create the hash. This algorithm is only available if PHP has been compiled with Argon2 support.
+              * PASSWORD_ARGON2ID - Use the Argon2id hashing algorithm to create the hash. This algorithm is only available if PHP has been compiled with Argon2 support.
+            </textarea>
+          </section>
+
+          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+            <textarea data-template>
               ## password_hash options
 
-              * PASSWORD_DEFAULT - options available `cost`
+              * PASSWORD_BCRYPT - options available `cost`
               * PASSWORD_ARGON2I - options available `memory_cost`, `time_cost`, `threads`
               * PASSWORD_ARGON2ID - options available `memory_cost`, `time_cost`, `threads`
 
@@ -684,26 +708,6 @@
               * Largely dependent on server hardware
               * Iterations requires some testing.
               * Run some benchmarks on your system and see what works for you
-            </textarea>
-          </section>
-
-          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
-            <textarea data-template>
-              ## password_hash algorithms
-
-              * PASSWORD_DEFAULT - Uses the bcrypt algorithm (default as of PHP 5.5.0)
-              * PASSWORD_BCRYPT
-              * PASSWORD_ARGON2I
-              * PASSWORD_ARGON2ID
-
-              Note:
-              * Creates a password hash
-              * Note regarding storing password hashes. If you use PASSWORD_DEFAULT, please take into account the length of the digest which could increase over time. 255 characters should be enough for most if not all digests
-              * Probably good advice for all uses of password_hash(). That way you can upgrade hashes at any time using the password_needs_rehash() check + password_hash()
-              * PASSWORD_DEFAULT - Use the bcrypt algorithm (default as of PHP 5.5.0). Note that this constant is designed to change over time as new and stronger algorithms are added to PHP. For that reason, the length of the result from using this identifier can change over time. Therefore, it is recommended to store the result in a database column that can expand beyond 60 characters (255 characters would be a good choice).
-              * PASSWORD_BCRYPT - Use the CRYPT_BLOWFISH algorithm to create the hash. This will produce a standard crypt() compatible hash using the "$2y$" identifier. The result will always be a 60 character string, or FALSE on failure.
-              * PASSWORD_ARGON2I - Use the Argon2i hashing algorithm to create the hash. This algorithm is only available if PHP has been compiled with Argon2 support.
-              * PASSWORD_ARGON2ID - Use the Argon2id hashing algorithm to create the hash. This algorithm is only available if PHP has been compiled with Argon2 support.
             </textarea>
           </section>
 
@@ -813,15 +817,11 @@
           <textarea data-template>
               ## Why is Authenticated Encryption important
 
-              * Prevents bit-rewriting attacks
+              * Prevents bit-rewriting/bit-flipping attacks
 
               Note:
-              * Encryption renders the message unreadable without the correct key
-              * Authentication makes a message tamper-resistant
-              * When I use the word authentication it refers to the authenticity of the message not the authentication of an identity
-              * ParagonIE's blog uses these descriptions which I found really helpful
-                * Encryption does not provide intergrity
-                * Authentication does not provide confidentiality
+              * This is where an attacker can change the ciphertext in such a way as to result in a predictable change of the plaintext
+              * Authentication allows us to check if any bits were flipped in transit
           </textarea>
         </section>
 
@@ -846,14 +846,14 @@
               * This allows for authentication then decryption on the other end
 
               Note:
-              * Short piece of information used to authenticate a message
-              * https://moxie.org/blog/the-cryptographic-doom-principle/
-              * Vaudenay attack (beyond scope of presentation but look it up)
               * This order allows us to authenticate first then decrypt which can prevent some common attacks like the Vaudenay attack
-              * Essentially the attacker can modify the last byte in the ciphertext and check for error messages
-                * Doesn't need to be an error message you can typically tell by the timing of the error response
-              * Once they receive what would represent an invalid MAC error, they know what the last byte is
-              * Rinse and repeat until the ciphertext is decrypted
+              * https://moxie.org/blog/the-cryptographic-doom-principle/
+              * Vaudenay attack
+              * Oversimplified example:
+                * Essentially the attacker can modify the last byte in the ciphertext and check for error messages
+                  * Doesn't need to be an error message you can typically tell by the timing of the error response
+                * Once they receive what would represent an invalid MAC error, they know what the last byte is
+                * Rinse and repeat until the ciphertext is decrypted
               * By verifying the MAC first, this attack is not able to be executed
           </textarea>
         </section>
@@ -949,7 +949,7 @@
           <textarea data-template>
               ## Halite
 
-              * [pargonie/halite](https://github.com/paragonie/halite)
+              * [paragonie/halite](https://github.com/paragonie/halite)
 
               Note:
               * Halite is a high-level cryptography interface that relies on libsodium for all of its underlying cryptography operations
