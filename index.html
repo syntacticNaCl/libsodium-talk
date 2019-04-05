@@ -174,11 +174,11 @@
 
         <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
           <textarea data-template>
-            ## !Password encryption
+            ## !Stored password encryption
 
             Say it with me...
 
-            > Passwords should NOT be encrypted!
+            > Passwords should NOT be stored encrypted!
 
             Note:
             * This is a bit of a misnomer... A lot of hashing algorithms use encryption in them
@@ -190,7 +190,7 @@
           <textarea data-template>
             ## Password hashing
 
-            You should never ever, ever, ever need to decrypt a password
+            You should never ever, ever, ever need to decrypt a stored password
 
             Note:
             * Passwords should be hashed
@@ -781,6 +781,9 @@
               * password_hash() allows for passing a salt but that functionality has now been deprecated
               * sodium_crypto_pwhash_str_verify doesn't allow for manual salt creation and enforces specification of a limit for opslimit and memlimit
               * sodium_crypto_pwhash_str_verify only uses Argon2id
+              * recommend using libsodium if you are using argon2id since it is more explicit
+                * prevents misuse since you don't have the option to provide a salt
+                * has strong defaults for its opslimit and memlimit
               * password_hash() also takes similar parameters so you can use it responsibly as well
               * Use what you want, but be smart about it
           </textarea>
@@ -985,6 +988,7 @@
           * [NaCl docs](https://nacl.cr.yp.to/)
           * [MD5](https://en.wikipedia.org/wiki/MD5)
           * [bcrypt](https://en.wikipedia.org/wiki/Bcrypt)
+          * [Argon2 spec](https://password-hashing.net/submissions/specs/Argon-v3.pdf)
           * [Why order of encryption and authentication is important](https://moxie.org/blog/the-cryptographic-doom-principle/)
           * [ParagonIE](https://paragonie.com/blog)
           </textarea>
