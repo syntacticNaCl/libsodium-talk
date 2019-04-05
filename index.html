@@ -49,14 +49,13 @@
           <textarea data-template>
             ## agenda
 
+            * libsodium
             * Password hashing algorithms
             * Password best practices
-            * libsodium
             * Password hashing with libsodium
             * Encryption with libsodium
             * Encryption best practices
-            * Demo Argon2i
-            * Demo Encrypt/Decrypt with libsodium
+            * Demo
 
             Note:
             * Quick show of hands
@@ -96,6 +95,7 @@
               * Networking and Cryptography library
 
               Note:
+              * This kind
               * NaCl is a cryptographic library
               * Stands for Networking and Cryptography library
               * NaCl is the chemical forumula for Sodium Chloride or Salt
@@ -301,8 +301,9 @@
             * All of these functions are in comparison really fast and rely on the entropy of the password input
             * Relying on the entropy of a user's password is not smart
             * Hardware is able to try billions of passwords per second! and that is only with a few GPUs
+            * With the advent of dictionaries like "rockyou.txt" we need stronger hashing functions (around 32 million passwords, 14 million unique passwords)
             * We need hashing functions that are deliberately slow and password hardened such as:
-              * bcrypt, scrypt, or PBKDF2
+              * bcrypt, scrypt, PBKDF2, or Argon2
             </textarea>
           </section>
         </section>
@@ -353,7 +354,7 @@
               ## bcrypt in PHP
 
               * PHP < 5.3.7 you had to use the `crypt()` function
-              * PHP >= 5.3.7 and < 5.5-DEV you had to use a compatibility library `ircmaxell/password_compat`
+              * PHP >= 5.3.7 and < 5.5-DEV recommended to use a compatibility library `ircmaxell/password_compat`
               * PHP >= 5.5-DEV introduced `password_hash()`
 
               <img src="img/lotr-ring.jpg" alt="" style="width: 25%;">
@@ -440,7 +441,7 @@
             </textarea>
           </section>
 
-          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <section data-markdown>
             <textarea data-template>
               ## argon2id hash breakdown
               <pre>
@@ -456,12 +457,6 @@
               * p=2 - parallelism
               * $bmt... - base-64 encoded salt
               * $oZK... - base-64 encoded hash
-
-              Note:
-              * Cryptographers got smarter and started storing configuration values in the hash itself
-                * No longer have to pull from different storage mediums to access information about the hash
-                * Makes hash easier to verify in one fail swoop since what is need is in the hash itself
-              * Allows for increasing cost - which represents a key expansion iteration count
             </textarea>
           </section>
 
@@ -480,7 +475,7 @@
               </pre>
 
               Note:
-              * PHP must be compiled with Argon2 support
+              * PHP must be compiled with Argon2 support or installed with OS package manager
               * Again Argon2id is recommended
             </textarea>
           </section>
@@ -500,6 +495,12 @@
 
           Note:
           * Side channel attacks use information that does not relate to the plaintext or ciphertext
+          * Attackers gather specific information about the device used to encrypt the message
+          * Information regarding:
+            * timing
+            * radiation, heat
+            * power consumption
+            * and more
           * Interesting attack example not directly related to hashing
           * *Anecdote* interesting attacks executed by researchers at the Technion in Israel against airgapped computers
             * Able to successfully send commands from a computer on the web to an airgapped computer located next to it
@@ -520,10 +521,11 @@
 
           Note:
           * Generic terminology for an algorithm that either improves running time by using more memory or improves memory usage by using more computing time
+          * One thing that makes use of this attack are Rainbow tables
           * Rainbow tables sit between:
-            * Precomputed table containing hashes of potention passwords
+            * Precomputed table containing hashes of potential passwords
             * Exhaustive search of trying all potential passwords
-          * This balancing act allows for narrowing down the possibility of discovering the hash
+          * This balancing act allows for the time it takes to crack passwords to be reduced significantly
           * Salts can be used to thwart precomputed tables, including rainbow tables
           </textarea>
         </section>
@@ -537,7 +539,7 @@
 
           Note:
           * Salts should be unique
-          * Salts don't NEED to be secret, but they also don't NEED to be public
+          * Salts don't NEED to be secret
           * Salts should NOT be things like emails or usernames since even changing the password will keep the same salt
           * Remember, users tend to re-use passwords all over the internet, especially incremental ones, BobsPassword1, BobsPassword2, etc
           </textarea>
@@ -588,7 +590,7 @@
             </textarea>
           </section>
 
-          <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
+          <section data-markdown>
             <textarea data-template>
               ## Verifying a password hash in libsodium
 
@@ -602,9 +604,6 @@
                   );
                 </code>
               </pre>
-
-              Note:
-              * Same opslimit and memlimit parameters should be used
             </textarea>
           </section>
         </section>
@@ -612,7 +611,7 @@
         <section>
           <section data-markdown data-separator="^\n\n\n" data-separator-vertical="^\n\n" data-separator-notes="^Note:">
             <textarea data-template>
-            ## PHP core figured it out
+            ## Hashing with PHP core
 
             * [password_get_info](https://php.net/manual/en/function.password-get-info.php) — Returns information about the given hash
             * [password_hash](https://php.net/manual/en/function.password-hash.php) — Creates a password hash
@@ -779,7 +778,9 @@
               * They both accomplish largely the same goal
               * The important part is that they are used responsibly
               * DO NOT use your own salt unless you know what you are doing, just let it generate it for your
-              * sodium_crypto_pwhash_str_verify doesn't allow for manual salt creation and enforces a default limit for opslimit and memlimit
+              * password_hash() allows for passing a salt but that functionality has now been deprecated
+              * sodium_crypto_pwhash_str_verify doesn't allow for manual salt creation and enforces specification of a limit for opslimit and memlimit
+              * sodium_crypto_pwhash_str_verify only uses Argon2id
               * password_hash() also takes similar parameters so you can use it responsibly as well
               * Use what you want, but be smart about it
           </textarea>
@@ -908,7 +909,6 @@
               * Uses kernel CSPRNG, not userspace CSPRNG
               * cryptographically secure pseudo-random number generator (CSPRNG)
               * There were some issues in the past with openssl_random_pseudo_bytes()
-              * Honestly OpenSSL hasn't had the best track record with security
               * Those issues were rectified I believe, but its safer to just use random_bytes() at this point
             </textarea>
           </section>
